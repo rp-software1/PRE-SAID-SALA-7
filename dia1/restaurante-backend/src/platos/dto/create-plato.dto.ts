@@ -3,11 +3,11 @@ import { IsString, IsNumber, IsBoolean, IsOptional, MinLength, IsPositive } from
 export class CreatePlatoDto {
   @IsString()
   @MinLength(1)
-  nombre: string;
+  nombre!: string;
 
   @IsNumber()
   @IsPositive()
-  precio: number;
+  precio!: number;
 
   @IsBoolean()
   @IsOptional()
