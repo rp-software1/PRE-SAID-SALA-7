@@ -5,12 +5,12 @@ estado: en_progreso
 loom: (agregar link al terminar)
 ---
 ## Bloques
-- [ ] A — Videos: code review y correcciones con IA
-- [ ] B — Módulo Mesas con Git branch + code review exhaustivo
-- [ ] C — Documentación de hallazgos + Loom + PR
+- [X] A — Videos: code review y correcciones con IA
+- [X ] B — Módulo Mesas con Git branch + code review exhaustivo
+- [X] C — Documentación de hallazgos + Loom + PR
 ## Verificación final
-- [ ] Módulo Mesas funcionando en localhost
-- [ ] GET /mesas responde en Postman o navegador
-- [ ] Rama feature/mesas mergeada a main
-- [ ] Documento de hallazgos del code review completado
-- [ ] PR creado y enviado a sala par
+- [X] Módulo Mesas funcionando en localhost
+- [X] GET /mesas responde en Postman o navegador
+- [X] Rama feature/mesas mergeada a main
+- [X] Documento de hallazgos del code review completado
+- [X] PR creado y enviado a sala par
