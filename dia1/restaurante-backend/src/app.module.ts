@@ -4,8 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PlatosModule } from './platos/platos.module';
 import { MesasModule } from './mesas/mesas.module';
+import { PedidosModule } from './pedidos/pedidos.module';
 import { Plato } from './platos/entities/plato.entity';
 import { Mesa } from './mesas/entities/mesa.entity';
+import { Pedido } from './pedidos/entities/pedido.entity';
 
 @Module({
   imports: [
@@ -13,11 +15,12 @@ import { Mesa } from './mesas/entities/mesa.entity';
       type: 'sqljs',
       autoSave: true,
       location: 'db.sqlite',
-      entities: [Plato, Mesa],
+      entities: [Plato, Mesa, Pedido],
       synchronize: true,
     }),
     PlatosModule,
     MesasModule,
+    PedidosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
