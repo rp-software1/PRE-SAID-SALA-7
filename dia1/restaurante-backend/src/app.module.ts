@@ -9,6 +9,7 @@ import { Plato } from './platos/entities/plato.entity';
 import { Mesa } from './mesas/entities/mesa.entity';
 import { Pedido } from './pedidos/entities/pedido.entity';
 import { ComandasModule } from './comandas/comandas.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ComandasModule } from './comandas/comandas.module';
     MesasModule,
     PedidosModule,
     ComandasModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
