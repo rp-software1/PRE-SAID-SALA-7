@@ -6,7 +6,7 @@ estado: en_progreso
 loom: (agregar link al terminar)
 ---
 ## Bloques
-- [ ] A — Comandas + Tickets (cerrar backend)
+- [X] A — Comandas + Tickets (cerrar backend)
 - [ ] B — Frontend Next.js: páginas del restaurante visibles en navegador
 - [ ] C — Flujo completo end-to-end + Loom + PR
 ## Verificación final
