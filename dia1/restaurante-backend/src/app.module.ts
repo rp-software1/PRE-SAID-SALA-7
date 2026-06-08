@@ -8,6 +8,7 @@ import { PedidosModule } from './pedidos/pedidos.module';
 import { Plato } from './platos/entities/plato.entity';
 import { Mesa } from './mesas/entities/mesa.entity';
 import { Pedido } from './pedidos/entities/pedido.entity';
+import { ComandasModule } from './comandas/comandas.module';
 
 @Module({
   imports: [
@@ -15,12 +16,13 @@ import { Pedido } from './pedidos/entities/pedido.entity';
       type: 'sqljs',
       autoSave: true,
       location: 'db.sqlite',
-      entities: [Plato, Mesa, Pedido],
+      autoLoadEntities: true,
       synchronize: true,
     }),
     PlatosModule,
     MesasModule,
     PedidosModule,
+    ComandasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
