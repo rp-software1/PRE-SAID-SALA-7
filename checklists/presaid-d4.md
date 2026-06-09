@@ -3,7 +3,7 @@ sala: I-SALAX
 curso: PRE-SAID — Desarrollo Moderno con IA y CLI
 dia: 4
 estado: en_progreso
-loom: (agregar link al terminar)
+loom: https://www.loom.com/share/941ffa6ae6bd40b09457a272b9d8dd10
 ---
 ## Bloques
 - [X] A — Comandas + Tickets (cerrar backend)
@@ -14,5 +14,5 @@ loom: (agregar link al terminar)
 - [X] Frontend Next.js mostrando datos del backend en el navegador
 - [X] Flujo completo: crear mesa → crear platos → crear pedido → ver en frontend
 - [X] CHANGES.md actualizado
-- [ ] feedback_dia4_[tunombre].md completado y commiteado
-- [ ] PR creado y enviado a sala par
+- [X] feedback_dia4_[tunombre].md completado y commiteado
+- [X] PR creado y enviado a sala par
