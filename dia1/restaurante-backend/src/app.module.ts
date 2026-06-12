@@ -14,12 +14,14 @@ import { TicketsModule } from './tickets/tickets.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqljs',
-      autoSave: true,
-      location: 'db.sqlite',
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
+    type: 'postgres',
+    url: process.env.DATABASE_URL,
+    autoLoadEntities: true,
+    synchronize: true,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+}),
     PlatosModule,
     MesasModule,
     PedidosModule,
