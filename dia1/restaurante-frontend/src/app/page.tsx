@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const API = "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export default function Dashboard() {
   const [platos, setPlatos] = useState<number>(0);
