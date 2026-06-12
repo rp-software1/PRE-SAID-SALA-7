@@ -21,7 +21,7 @@ interface Comanda {
   createdAt: string;
 }
 
-const estados = ["recibida", "en_preparacion", "lista"] as const;
+  const estados = ["recibida", "en_preparacion", "lista"] as const;
 
 const estadoBadge: Record<string, string> = {
   recibida: "bg-yellow-100 text-yellow-700",
@@ -37,19 +37,22 @@ export default function ComandasPage() {
   const [showForm, setShowForm] = useState(false);
   const [pedidoId, setPedidoId] = useState("");
   const [observaciones, setObservaciones] = useState("");
+  const [detailId, setDetailId] = useState<number | null>(null);
+  const [detail, setDetail] = useState<Comanda | null>(null);
 
   const fetchComandas = async () => {
     try {
       setLoading(true);
+      setError("");
       const [comRes, pedRes] = await Promise.all([
         fetch(`${API}/comandas`),
         fetch(`${API}/pedidos`),
       ]);
-      if (!comRes.ok || !pedRes.ok) throw new Error();
+      if (!comRes.ok || !pedRes.ok) throw new Error("Error al obtener datos");
       setComandas(await comRes.json());
       setPedidos(await pedRes.json());
-    } catch {
-      setError("No se pudieron cargar las comandas. Verificá que el backend esté corriendo.");
+    } catch (e) {
+      setError(`No se pudieron cargar las comandas: ${e instanceof Error ? e.message : "verificá que el backend esté corriendo"}`);
     } finally {
       setLoading(false);
     }
@@ -80,16 +83,20 @@ export default function ComandasPage() {
   };
 
   const cambiarEstado = async (id: number, estado: string) => {
+    setError("");
     try {
       const res = await fetch(`${API}/comandas/${id}/estado`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Error del servidor");
+      }
       await fetchComandas();
-    } catch {
-      setError("No se pudo cambiar el estado.");
+    } catch (e) {
+      setError(`No se pudo cambiar el estado: ${e instanceof Error ? e.message : "error desconocido"}`);
     }
   };
 
@@ -104,9 +111,35 @@ export default function ComandasPage() {
     }
   };
 
+  const toggleDetail = async (id: number) => {
+    if (detailId === id) {
+      setDetailId(null);
+      setDetail(null);
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/comandas/${id}`);
+      if (!res.ok) throw new Error();
+      setDetail(await res.json());
+      setDetailId(id);
+    } catch {
+      setError("No se pudo cargar el detalle de la comanda.");
+    }
+  };
+
+  const normalizeEstado = (e: string) => e.toLowerCase();
+
   const nextEstado = (actual: string) => {
-    const idx = estados.indexOf(actual as typeof estados[number]);
-    return idx >= 0 && idx < estados.length - 1 ? estados[idx + 1] : null;
+    const normal = normalizeEstado(actual);
+    const idx = estados.indexOf(normal as typeof estados[number]);
+    if (idx >= 0 && idx < estados.length - 1) return estados[idx + 1];
+    if (normal === "lista") return null;
+    return null;
+  };
+
+  const badgeClass = (estado: string) => {
+    const normal = normalizeEstado(estado);
+    return estadoBadge[normal] || "bg-gray-100 text-gray-600";
   };
 
   if (loading) return <p className="text-gray-500">Cargando comandas...</p>;
@@ -166,43 +199,56 @@ export default function ComandasPage() {
       <div className="space-y-3">
         {comandas.map((c) => {
           const sig = nextEstado(c.estado);
+          const displayEstado = normalizeEstado(c.estado);
           return (
-            <div key={c.id} className="bg-white rounded-xl shadow p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-semibold">Comanda #{c.id}</h3>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estadoBadge[c.estado] || "bg-gray-100"}`}>
-                      {c.estado.replace("_", " ")}
-                    </span>
+            <div key={c.id} className="bg-white rounded-xl shadow">
+              <div className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="font-semibold">Comanda #{c.id}</h3>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeClass(c.estado)}`}>
+                        {c.estado.replace("_", " ")}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Pedido #{c.pedidoId} — Mesa #{c.pedido?.mesa?.numero ?? "?"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Platos: {c.pedido?.platos?.map((pl) => pl.nombre).join(", ") || "—"}
+                    </p>
+                    {c.observaciones && (
+                      <p className="text-sm text-gray-400 italic mt-1">Obs: {c.observaciones}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Pedido #{c.pedidoId} — Mesa #{c.pedido?.mesa?.numero ?? "?"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Platos: {c.pedido?.platos?.map((pl) => pl.nombre).join(", ") || "—"}
-                  </p>
-                  {c.observaciones && (
-                    <p className="text-sm text-gray-400 italic mt-1">Obs: {c.observaciones}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {sig && (
-                    <button
-                      onClick={() => cambiarEstado(c.id, sig)}
-                      className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-gray-700 transition"
-                    >
-                      Pasar a {sig.replace("_", " ")}
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => toggleDetail(c.id)} className="text-gray-600 text-xs hover:underline">
+                      {detailId === c.id ? "Ocultar" : "Ver detalle"}
                     </button>
-                  )}
-                  <button
-                    onClick={() => eliminar(c.id)}
-                    className="text-red-500 text-xs hover:underline"
-                  >
-                    Eliminar
-                  </button>
+                    {sig ? (
+                      <button onClick={() => cambiarEstado(c.id, sig)} className="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-gray-700 transition">
+                        Pasar a {sig.replace("_", " ")}
+                      </button>
+                    ) : displayEstado === "lista" ? (
+                      <span className="text-xs text-gray-400 italic">Completada</span>
+                    ) : null}
+                    <button onClick={() => eliminar(c.id)} className="text-red-500 text-xs hover:underline">Eliminar</button>
+                  </div>
                 </div>
               </div>
+              {detailId === c.id && detail && (
+                <div className="border-t px-4 py-3 bg-gray-50 rounded-b-xl text-sm space-y-1">
+                  <p><span className="font-medium">Comanda ID:</span> {detail.id}</p>
+                  <p><span className="font-medium">Pedido ID:</span> {detail.pedidoId}</p>
+                  <p><span className="font-medium">Mesa:</span> #{detail.pedido?.mesa?.numero}</p>
+                  <p><span className="font-medium">Platos:</span> {detail.pedido?.platos?.map((pl) => pl.nombre).join(", ")}</p>
+                  <p><span className="font-medium">Total pedido:</span> ${Number(detail.pedido?.total).toFixed(2)}</p>
+                  <p><span className="font-medium">Estado pedido:</span> {detail.pedido?.estado?.replace("_", " ")}</p>
+                  <p><span className="font-medium">Estado comanda:</span> {detail.estado.replace("_", " ")}</p>
+                  <p><span className="font-medium">Observaciones:</span> {detail.observaciones || "—"}</p>
+                  <p><span className="font-medium">Creada:</span> {new Date(detail.createdAt).toLocaleString()}</p>
+                </div>
+              )}
             </div>
           );
         })}

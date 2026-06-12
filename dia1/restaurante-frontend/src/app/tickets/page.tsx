@@ -31,6 +31,12 @@ const estadoBadge: Record<string, string> = {
   pagado: "bg-green-100 text-green-700",
 };
 
+const normalizeEstado = (e: string) => e.toLowerCase();
+const badgeClass = (estado: string) => {
+  const normal = normalizeEstado(estado);
+  return estadoBadge[normal] || "bg-gray-100 text-gray-600";
+};
+
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [mesas, setMesas] = useState<Mesa[]>([]);
@@ -46,15 +52,16 @@ export default function TicketsPage() {
   const fetchTickets = async () => {
     try {
       setLoading(true);
+      setError("");
       const [tickRes, mesRes] = await Promise.all([
         fetch(`${API}/tickets`),
         fetch(`${API}/mesas`),
       ]);
-      if (!tickRes.ok || !mesRes.ok) throw new Error();
+      if (!tickRes.ok || !mesRes.ok) throw new Error("Error al obtener datos");
       setTickets(await tickRes.json());
       setMesas(await mesRes.json());
-    } catch {
-      setError("No se pudieron cargar los tickets. Verificá que el backend esté corriendo.");
+    } catch (e) {
+      setError(`No se pudieron cargar los tickets: ${e instanceof Error ? e.message : "verificá que el backend esté corriendo"}`);
     } finally {
       setLoading(false);
     }
@@ -65,6 +72,7 @@ export default function TicketsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mesaId) return;
+    setError("");
     try {
       const res = await fetch(`${API}/tickets`, {
         method: "POST",
@@ -73,29 +81,33 @@ export default function TicketsPage() {
       });
       if (!res.ok) {
         const msg = await res.text();
-        throw new Error(msg);
+        throw new Error(msg || "Error del servidor");
       }
       setMesaId("");
       setShowForm(false);
       await fetchTickets();
-    } catch {
-      setError("No se pudo crear el ticket. La mesa debe tener al menos un pedido.");
+    } catch (e) {
+      setError(`No se pudo crear el ticket: ${e instanceof Error ? e.message : "la mesa debe tener al menos un pedido"}`);
     }
   };
 
   const handlePagar = async (id: number) => {
+    setError("");
     try {
       const res = await fetch(`${API}/tickets/${id}/pagar`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ metodoPago }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Error del servidor");
+      }
       setPaying(null);
       setExpanded(null);
       await fetchTickets();
-    } catch {
-      setError("No se pudo procesar el pago.");
+    } catch (e) {
+      setError(`No se pudo procesar el pago: ${e instanceof Error ? e.message : "error desconocido"}`);
     }
   };
 
@@ -104,14 +116,15 @@ export default function TicketsPage() {
       setExpanded(null);
       return;
     }
+    setError("");
     try {
       const res = await fetch(`${API}/tickets/${ticket.id}`);
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Error al obtener detalle");
       const data = await res.json();
       setPedidosMap((prev) => ({ ...prev, [ticket.id]: data.pedidos }));
       setExpanded(ticket.id);
-    } catch {
-      setError("No se pudieron cargar los detalles del ticket.");
+    } catch (e) {
+      setError(`No se pudieron cargar los detalles: ${e instanceof Error ? e.message : "error desconocido"}`);
     }
   };
 
@@ -165,7 +178,7 @@ export default function TicketsPage() {
               <div className="flex items-center gap-4">
                 <h3 className="font-semibold">Ticket #{t.id}</h3>
                 <span className="text-sm text-gray-500">Mesa #{t.mesa?.numero ?? t.mesaId}</span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${estadoBadge[t.estado] || "bg-gray-100"}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badgeClass(t.estado)}`}>
                   {t.estado}
                 </span>
               </div>
