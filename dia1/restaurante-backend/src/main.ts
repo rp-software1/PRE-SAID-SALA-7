@@ -7,10 +7,17 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-  app.enableCors({ origin: frontendUrl });
+  // 🔥 CORS CORREGIDO PARA PRODUCCIÓN + LOCAL
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'https://pre-said-sala-7-six.vercel.app',
+    ],
+    methods: 'GET,POST,PUT,PATCH,DELETE',
+    credentials: true,
+  });
 
-  // Agregar ValidationPipe global
+  // Validación global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -22,7 +29,7 @@ async function bootstrap() {
     }),
   );
 
-  // Configurar Swagger
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('API Restaurante')
     .setDescription('Documentación de la API del restaurante')
@@ -32,7 +39,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const puerto = process.env.PORT ?? 3001;
+  // PORT de Render
+  const puerto = process.env.PORT || 3000;
 
   await app.listen(puerto);
 
