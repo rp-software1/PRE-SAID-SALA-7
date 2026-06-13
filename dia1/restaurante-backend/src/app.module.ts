@@ -20,7 +20,9 @@ import { TicketsModule } from './tickets/tickets.module';
             url: process.env.DATABASE_URL,
             autoLoadEntities: true,
             synchronize: true,
-            ssl: { rejectUnauthorized: false },
+            ssl: process.env.NODE_ENV === 'production'
+              ? { rejectUnauthorized: false }
+              : false,
           }
         : {
             type: 'sqljs',
